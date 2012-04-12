@@ -35,6 +35,7 @@ namespace RestSharp
 	public partial class RestClient : IRestClient
 	{
 		public IHttpFactory HttpFactory = new SimpleFactory<Http>();
+        public Dictionary<string, HttpCookie> DefaultCookies { get; protected set; }
 
 		/// <summary>
 		/// Default constructor that registers default content handlers
@@ -64,6 +65,7 @@ namespace RestSharp
 
 			UserAgent = "RestSharp " + version.ToString();
 			FollowRedirects = true;
+            DefaultCookies = new Dictionary<string, HttpCookie>();
 		}
 
 		/// <summary>
@@ -409,10 +411,18 @@ namespace RestSharp
 							  Value = p.Value.ToString()
 						  };
 
+            Dictionary<string, HttpCookie> cookieSet = new Dictionary<string, HttpCookie>();
 			foreach(var cookie in cookies)
 			{
 				http.Cookies.Add(cookie);
+                cookieSet[cookie.Name] = cookie;
 			}
+
+            foreach(var cookie in this.DefaultCookies.Values)
+            {
+                if (cookieSet.ContainsKey(cookie.Name) == false)
+                    http.Cookies.Add(cookie);
+            }
 
 			var @params = from p in request.Parameters
 						  where p.Type == ParameterType.GetOrPost
@@ -500,9 +510,10 @@ namespace RestSharp
 			IRestResponse<T> response = new RestResponse<T>();
 			try
 			{
-			    response = raw.toAsyncResponse<T>();
+                response = raw.toAsyncResponse<T>();
 				response.Data = handler.Deserialize<T>(raw);
-			}
+                response.ErrorException = raw.ErrorException;
+            }
 			catch (Exception ex)
 			{
 				response.ResponseStatus = ResponseStatus.Error;

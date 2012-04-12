@@ -85,7 +85,13 @@ namespace RestSharp
 		private void ProcessResponse(HttpResponse httpResponse, RestRequestAsyncHandle asyncHandle, Action<IRestResponse, RestRequestAsyncHandle> callback)
 		{
 			var restResponse = ConvertToRestResponse(httpResponse);
-			callback(restResponse, asyncHandle);
+            
+            foreach(var cookie in httpResponse.Cookies)
+            {
+                this.DefaultCookies[cookie.Name] = cookie;
+            }
+			
+            callback(restResponse, asyncHandle);
 		}
 
 		/// <summary>
