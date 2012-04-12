@@ -105,6 +105,12 @@ namespace RestSharp
 			}
 
 			var restResponse = ConvertToRestResponse(httpResponse);
+
+            foreach(var cookie in httpResponse.Cookies)
+            {
+                this.DefaultCookies[cookie.Name] = cookie;
+            }
+
 			return restResponse;
 		}
 
