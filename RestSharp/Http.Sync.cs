@@ -186,6 +186,12 @@ namespace RestSharp
 			webRequest.UseDefaultCredentials = false;
 			ServicePointManager.Expect100Continue = false;
 
+            if (url.Host.ToLower().Contains("webfilings.appspot.com") == false)
+            {
+                // Ignore SSL errors (such as self-signed certificates) for non-production URLs
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            }
+
 			AppendHeaders(webRequest);
 			AppendCookies(webRequest);
 
